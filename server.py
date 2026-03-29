@@ -29,7 +29,6 @@ from nanobot.config.loader import (
 )
 from nanobot.config.schema import Config
 
-from contextlib import asynccontextmanager
 
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 SECRET_FIELDS = {"api_key", "apiKey", "token", "app_secret", "appSecret", "encrypt_key", "encryptKey", "verification_token", "verificationToken"}
@@ -66,8 +65,7 @@ class BasicAuthBackend(AuthenticationBackend):
 
 
 def require_auth(request: Request):
-    user = getattr(request, "user", None)
-    if user is None or not user.is_authenticated:
+    if not request.user.is_authenticated:
         return PlainTextResponse(
             "Unauthorized",
             status_code=401,
@@ -338,16 +336,11 @@ routes = [
     Route("/api/gateway/restart", api_gateway_restart, methods=["POST"]),
 ]
 
-@asynccontextmanager
-async def lifespan(app):
-    await auto_start_gateway()
-    yield
-    await gateway.stop()
-
 app = Starlette(
     routes=routes,
     middleware=[Middleware(AuthenticationMiddleware, backend=BasicAuthBackend())],
-    lifespan=lifespan,
+    on_startup=[auto_start_gateway],
+    on_shutdown=[gateway.stop],
 )
 
 
