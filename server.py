@@ -341,11 +341,12 @@ routes = [
 async def lifespan(app):
     await auto_start_gateway()
     yield
-    await gateway.stop()    # lo que estaba en on_shutdown
+    await gateway.stop()
 
 app = Starlette(
-    lifespan=lifespan,
     routes=routes,
+    middleware=[Middleware(AuthenticationMiddleware, backend=BasicAuthBackend())],
+    lifespan=lifespan,
 )
 
 
