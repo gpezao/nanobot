@@ -339,9 +339,9 @@ routes = [
 
 @asynccontextmanager
 async def lifespan(app):
-    await alguna_funcion()  # lo que estaba en on_startup
+    await auto_start_gateway()
     yield
-    await otra_funcion()    # lo que estaba en on_shutdown
+    await gateway.stop()    # lo que estaba en on_shutdown
 
 app = Starlette(
     lifespan=lifespan,
