@@ -66,7 +66,8 @@ class BasicAuthBackend(AuthenticationBackend):
 
 
 def require_auth(request: Request):
-    if not request.user.is_authenticated:
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
         return PlainTextResponse(
             "Unauthorized",
             status_code=401,
