@@ -29,6 +29,8 @@ from nanobot.config.loader import (
 )
 from nanobot.config.schema import Config
 
+from contextlib import asynccontextmanager
+
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 SECRET_FIELDS = {"api_key", "apiKey", "token", "app_secret", "appSecret", "encrypt_key", "encryptKey", "verification_token", "verificationToken"}
 
@@ -335,11 +337,15 @@ routes = [
     Route("/api/gateway/restart", api_gateway_restart, methods=["POST"]),
 ]
 
+@asynccontextmanager
+async def lifespan(app):
+    await alguna_funcion()  # lo que estaba en on_startup
+    yield
+    await otra_funcion()    # lo que estaba en on_shutdown
+
 app = Starlette(
+    lifespan=lifespan,
     routes=routes,
-    middleware=[Middleware(AuthenticationMiddleware, backend=BasicAuthBackend())],
-    on_startup=[auto_start_gateway],
-    on_shutdown=[gateway.stop],
 )
 
 
